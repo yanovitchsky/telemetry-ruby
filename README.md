@@ -1,4 +1,4 @@
-# Telemetry
+# Telemetry [![Build Status](https://travis-ci.org/[YOUR_GITHUB_USERNAME]/[YOUR_PROJECT_NAME].png)](https://travis-ci.org/yammer/telemetry-ruby)
 
 Make your app talk…and talk…and talk. Inspired by Google's [Dapper](http://research.google.com/pubs/pub36356.html).
 
