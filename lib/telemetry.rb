@@ -1,12 +1,12 @@
-require 'uuidtools'
-
 # The Telemetry module models a dapper(http://research.google.com/pubs/pub36356.html)-like
 # system for distributed execution tracing.
 module Telemetry
   class << self
     attr_accessor :span_sinks
+    attr_accessor :max_id
   end
   Telemetry.span_sinks = []
+  Telemetry.max_id = 2**64
 
   # Ruby 1.8.7 only does seconds as a float. Newer versions have explicit nanosecond
   # support. Until then...
@@ -87,8 +87,8 @@ module Telemetry
     end
 
     def self.start(name, trace_id, span_id, parent_span_id, log_span)
-      trace_id ||= @@context.current_trace_id() || UUIDTools::UUID.random_create
-      span_id ||= UUIDTools::UUID.random_create
+      trace_id ||= @@context.current_trace_id() || rand(Telemetry.max_id)
+      span_id ||= rand(Telemetry.max_id)
       parent_span_id ||= @@context.current_span_id()
 
       span = Span.new(trace_id, span_id, parent_span_id, name, Telemetry.now_in_nanos, log_span)

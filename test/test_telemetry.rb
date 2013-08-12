@@ -59,8 +59,8 @@ class SpanTest < Test::Unit::TestCase
   end
 
   def test_attach_span
-    trace_id = UUIDTools::UUID.random_create
-    span_id = UUIDTools::UUID.random_create
+    trace_id = rand(Telemetry.max_id)
+    span_id = rand(Telemetry.max_id)
     span = Telemetry::Span.attach_span(trace_id, span_id)
     span.add_annotation('Attached', 'Yay')
 
