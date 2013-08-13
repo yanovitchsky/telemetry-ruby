@@ -3,13 +3,8 @@ require 'yajl'
 
 module Telemetry
   class TelemetryServiceSink
-    attr_reader :service_host_port
-
-    def initialize(service_host_port)
-      # TODO: Eventually this needs to come from some sort of configuration.
-      #@service_host_port = service_host_port
-      @service_host_port = 'localhost:9000'
-      @http = Net::HTTP.new(@service_host_port)
+    def initialize(service_host, service_port)
+      @http = Net::HTTP.new(service_host, service_port)
     end
 
     # Record the span.
