@@ -1,3 +1,5 @@
+require 'rack/controller'
+
 # The Telemetry module models a dapper(http://research.google.com/pubs/pub36356.html)-like
 # system for distributed execution tracing.
 module Telemetry
