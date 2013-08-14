@@ -3,6 +3,7 @@ class Zephyr
 
   def perform(method, path_components, headers, expect, timeout, data=nil)
     span = Telemetry::Span.start_span(uri(path_components))
+    span.add_annotation('UserAgent', 'Zephyr')
     span.add_annotation('ClientSent')
 
     begin
