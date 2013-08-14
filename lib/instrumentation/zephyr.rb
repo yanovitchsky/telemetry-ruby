@@ -2,7 +2,7 @@ class Zephyr
   alias_method :old_perform, :perform
 
   def perform(method, path_components, headers, expect, timeout, data=nil)
-    span = Telemetry::Span.start_span(uri(path_components))
+    span = Telemetry::Span.start_span(uri(path_components).to_s)
     span.add_annotation('UserAgent', 'Zephyr')
     span.add_annotation('ClientSent')
 
