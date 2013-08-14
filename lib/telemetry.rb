@@ -1,6 +1,5 @@
 require 'instrumentation/rack'
 require 'instrumentation/zephyr'
-require 'instrumentation/woodhouse'
 
 # The Telemetry module models a dapper(http://research.google.com/pubs/pub36356.html)-like
 # system for distributed execution tracing.
