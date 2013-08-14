@@ -1,5 +1,5 @@
 class Zephyr
-  alias_method :old_perform, :perform
+  alias_method :old_perform, :perform if method_defined?(:perform)
 
   def perform(method, path_components, headers, expect, timeout, data=nil)
     span = Telemetry::Span.start_span(uri(path_components).to_s)
