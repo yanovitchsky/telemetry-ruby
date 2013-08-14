@@ -8,7 +8,7 @@ module Telemetry
     attr_accessor :max_id
   end
   Telemetry.span_sinks = []
-  Telemetry.max_id = 2**64
+  Telemetry.max_id = (2**63) - 1
 
   # Ruby 1.8.7 only does seconds as a float. Newer versions have explicit nanosecond
   # support. Until then...
