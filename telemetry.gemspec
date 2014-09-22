@@ -9,5 +9,9 @@ Gem::Specification.new do |s|
   s.files = ["lib/telemetry.rb"]
   s.homepage = 'https://github.com/yammer/telemetry'
   s.license = 'Apache 2.0'
-  s.add_dependency('yajl-ruby', '>=0.8.3')
+  s.add_dependency 'multi_json', '~> 1.0'
+  s.add_dependency('sinatra')
+  s.add_dependency('mongoid')
+  s.add_dependency('em-mongo')
+  s.add_dependency('redis')
 end

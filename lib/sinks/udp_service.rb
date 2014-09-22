@@ -1,0 +1,42 @@
+require 'socket'
+require 'multi_json'
+
+module Telemetry
+  class UdpServiceSink
+    
+    def initialize(host, port, logger)
+      @socket = UDPSocket.new
+      @socket.connect(host, port)
+      @logger = logger
+    end
+    # Record the span.
+    def record(span)
+      data = {span: span.to_hash}
+      encoded_data = MultiJson.dump(data)
+      begin
+        @logger.info data.inspect
+        @socket.send(encoded_data, encoded_data.size)
+      rescue Exception => e
+        @logger.info "error send span #{e}"
+      end
+    end
+
+    # Record the annotation.
+    def record_annotation(trace_id, id, annotation_data)
+      data ={
+        annotation: {
+          trace_id: trace_id,
+          id: id,
+          data: annotation_data.to_hash
+        }
+      }
+      encoded_data = MultiJson.dump(data)
+      begin
+        @logger.info data.inspect
+        @socket.send(encoded_data, encoded_data.size)
+      rescue Exception => e
+         @logger.info "error sending annotation #{e}" 
+      end
+    end
+  end
+end

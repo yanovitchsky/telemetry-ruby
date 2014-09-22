@@ -5,11 +5,12 @@ module Rack
     end
 
     def call(env)
+      puts "telemetry is loaded"
       trace_id = env[header_hash_name('X-Telemetry-TraceId')]
       span_id = env[header_hash_name('X-Telemetry-SpanId')]
 
       if trace_id.nil? || span_id.nil?
-        span = Telemetry::Span.start_trace(env['SCRIPT_NAME'] + env['PATH_INFO'])
+        span = Telemetry::Span.start_trace(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'])
       else
         span = Telemetry::Span.attach_span(trace_id, span_id)
       end

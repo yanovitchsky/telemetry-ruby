@@ -1,5 +1,15 @@
 require 'instrumentation/rack'
+require 'instrumentation/goliath'
 require 'instrumentation/zephyr'
+require 'instrumentation/visibleo_api'
+require 'instrumentation/karibu'
+require 'instrumentation/moped'
+require 'instrumentation/memcached'
+require 'instrumentation/redis'
+
+require 'sinks/telemetry_service'
+require "sinks/udp_service"
+require "sinks/redis_service"
 
 # The Telemetry module models a dapper(http://research.google.com/pubs/pub36356.html)-like
 # system for distributed execution tracing.
@@ -7,9 +17,11 @@ module Telemetry
   class << self
     attr_accessor :span_sinks
     attr_accessor :max_id
+    attr_accessor :service_name
   end
   Telemetry.span_sinks = []
   Telemetry.max_id = (2**63) - 1
+  Telemetry.service_name = nil
 
   # Ruby 1.8.7 only does seconds as a float. Newer versions have explicit nanosecond
   # support. Until then...
@@ -38,6 +50,11 @@ module Telemetry
       else
         @@spans.slice(-1).id
       end
+      # if Thread.current[:spans].empty?
+      #   nil
+      # else
+      #   Thread.current[:spans].slice(-1).id
+      # end
     end
 
     # Start the given span. Switches the current context to run in the context of this span
@@ -90,12 +107,14 @@ module Telemetry
     end
 
     def self.start(name, trace_id, span_id, parent_span_id, log_span)
+      # Thread.current[:spans] ||= []
       trace_id ||= @@context.current_trace_id() || rand(Telemetry.max_id)
       span_id ||= rand(Telemetry.max_id)
-      parent_span_id ||= @@context.current_span_id()
+      parent_span_id ||= @@context.current_span_id() # attention de marche pas avec les threads.
 
       span = Span.new(trace_id, span_id, parent_span_id, name, Telemetry.now_in_nanos, log_span)
       @@context.start_span(span)
+      # Thread.current[:spans] << span
       span
     end
 
@@ -136,7 +155,18 @@ module Telemetry
     end
 
     def inspect
-      "Span(name = #{name}, trace_id = #{trace_id}, id = #{id}, parent_id = #{parent_id})"
+      "Span(name = #{name}, trace_id = #{trace_id}, id = #{id}, parent_id = #{parent_id}) duration = #{duration}"
+    end
+
+    def to_hash
+      {
+        name: name,
+        trace_id: trace_id,
+        id: id,
+        parent_id: parent_id,
+        start_time_nanos: start_time_nanos,
+        duration: duration
+      }
     end
   end
 
@@ -150,6 +180,14 @@ module Telemetry
       @start_time_nanos = Telemetry.now_in_nanos
       @name = name
       @message = message
+    end
+
+    def to_hash
+      {
+        name: @name,
+        message: @message,
+        start_time_nanos: @start_time_nanos
+      }
     end
 
     def inspect
