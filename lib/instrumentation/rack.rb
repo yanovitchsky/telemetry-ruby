@@ -10,9 +10,9 @@ module Rack
       span_id = env[header_hash_name('X-Telemetry-SpanId')]
 
       if trace_id.nil? || span_id.nil?
-        span = Telemetry::Span.start_trace(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'])
+        span = Telemetry::Span.start_trace(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], env['REQUEST_PATH'])
       else
-        span = Telemetry::Span.attach_span(trace_id, span_id)
+        span = Telemetry::Span.start(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], trace_id, nil, span_id, true, env['REQUEST_PATH'])
       end
 
       span.add_annotation('ServerReceived')

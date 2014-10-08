@@ -12,7 +12,7 @@ module Telemetry
               trace_id = Telemetry::SpanContext.new.current_trace_id
               span_id = Telemetry::SpanContext.new.current_span_id
               if trace_id.nil? || span_id.nil?
-                span = Telemetry::Span.start_trace(Telemetry.service_name || "Memcached")
+                span = Telemetry::Span.start_trace(Telemetry.service_name || "Memcached", nil)
               else
                 span = Telemetry::Span.attach_span(trace_id, span_id)
               end

@@ -14,8 +14,7 @@ module Telemetry
       data = {span: span.to_hash}
       encoded_data = MultiJson.dump(data)
       begin
-        @logger.info data.inspect
-        @socket.send(encoded_data, encoded_data.size)
+        @socket.send(encoded_data, 0)
       rescue Exception => e
         @logger.info "error send span #{e}"
       end
@@ -32,8 +31,7 @@ module Telemetry
       }
       encoded_data = MultiJson.dump(data)
       begin
-        @logger.info data.inspect
-        @socket.send(encoded_data, encoded_data.size)
+        @socket.send(encoded_data, 0)
       rescue Exception => e
          @logger.info "error sending annotation #{e}" 
       end

@@ -6,6 +6,7 @@ require 'instrumentation/karibu'
 require 'instrumentation/moped'
 require 'instrumentation/memcached'
 require 'instrumentation/redis'
+require 'instrumentation/neography'
 
 require 'sinks/telemetry_service'
 require "sinks/udp_service"
@@ -36,6 +37,15 @@ module Telemetry
 
     # Gets the current trace ID.
     def current_trace_id
+      if @@spans.empty?
+        nil
+      else
+        @@spans.slice(-1).trace_id
+      end
+    end
+
+    # Gets the current trace
+    def current_trace
       if @@spans.empty?
         nil
       else
@@ -88,37 +98,39 @@ module Telemetry
     attr_reader :name
     attr_reader :start_time_nanos
     attr_reader :duration
+    attr_reader :custom_attributes
+    attr_reader :endpoint
     @@context = SpanContext.new
 
     # Start a brand new trace.
-    def self.start_trace(name)
-      start(name, nil, nil, nil, true)
+    def self.start_trace(name, endpoint)
+      start(name, nil, nil, nil, true, endpoint)
     end
 
     # Start a new span within a trace.
-    def self.start_span(name)
-      start(name, nil, nil, nil, true)
+    def self.start_span(name, endpoint)
+      start(name, nil, nil, nil, true, endpoint)
     end
 
     # Attach to an existing span. This is useful when a span has been created elsewhere
     # (probably on another host) and you'd like to log annotations against that span locally.
     def self.attach_span(trace_id, span_id)
-      start(nil, trace_id, span_id, nil, false)
+      start(nil, trace_id, span_id, nil, false, nil)
     end
 
-    def self.start(name, trace_id, span_id, parent_span_id, log_span)
+    def self.start(name, trace_id, span_id, parent_span_id, log_span, endpoint)
       # Thread.current[:spans] ||= []
       trace_id ||= @@context.current_trace_id() || rand(Telemetry.max_id)
       span_id ||= rand(Telemetry.max_id)
       parent_span_id ||= @@context.current_span_id() # attention de marche pas avec les threads.
 
-      span = Span.new(trace_id, span_id, parent_span_id, name, Telemetry.now_in_nanos, log_span)
+      span = Span.new(trace_id, span_id, parent_span_id, name, Telemetry.now_in_nanos, log_span, endpoint)
       @@context.start_span(span)
       # Thread.current[:spans] << span
       span
     end
 
-    def initialize(trace_id, id, parent_id, name, start_time_nanos, log_span)
+    def initialize(trace_id, id, parent_id, name, start_time_nanos, log_span, endpoint)
       @trace_id = trace_id
       @id = id
       @parent_id = parent_id
@@ -126,6 +138,7 @@ module Telemetry
       @start_time_nanos = start_time_nanos
       @duration = -1
       @log_span = log_span
+      @endpoint = endpoint
       @annotations = []
     end
 
@@ -154,6 +167,11 @@ module Telemetry
       }
     end
 
+    # Add custom infos to span
+    def add_infos(hash)
+      self.custom_attributes.merge!(hash)
+    end
+
     def inspect
       "Span(name = #{name}, trace_id = #{trace_id}, id = #{id}, parent_id = #{parent_id}) duration = #{duration}"
     end
@@ -165,7 +183,9 @@ module Telemetry
         id: id,
         parent_id: parent_id,
         start_time_nanos: start_time_nanos,
-        duration: duration
+        duration: duration,
+        endpoint: endpoint,
+        custom_attributes: custom_attributes
       }
     end
   end

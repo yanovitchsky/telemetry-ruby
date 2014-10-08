@@ -12,9 +12,9 @@ if defined?(::Goliath)
           trace_id = env[header_hash_name('X-Telemetry-TraceId')]
           span_id = env[header_hash_name('X-Telemetry-SpanId')]
           if trace_id.nil? || span_id.nil?
-            span = Telemetry::Span.start_trace(Telemetry.service_name || "#{@name}#{env['PATH_INFO']}")
+            span = Telemetry::Span.start_trace(Telemetry.service_name || "#{@name}#{env['PATH_INFO']}", env['REQUEST_PATH'])
           else
-            span = Telemetry::Span.attach_span(trace_id, span_id)
+            span = Telemetry::Span.start(Telemetry.service_name || "#{@name}#{env['PATH_INFO']}", trace_id, nil, span_id, true, env['REQUEST_PATH'])
           end
           span.add_annotation('ServerReceived')
           super(env, span)
@@ -22,7 +22,7 @@ if defined?(::Goliath)
 
         def post_process(env, status, headers, body, span)
           p "post process ---------------"
-          span.add_annotation('ServerReceived')
+          span.add_annotation('ServerSent')
           span.end
           [status, headers, body]
         end

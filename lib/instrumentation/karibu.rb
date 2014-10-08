@@ -14,7 +14,7 @@ module Telemetry
               trace_id = Telemetry::SpanContext.new.current_trace_id
               span_id = Telemetry::SpanContext.new.current_span_id
               if trace_id.nil? || span_id.nil?
-                span = Telemetry::Span.start_trace(Telemetry.service_name || "karibu client")
+                span = Telemetry::Span.start_trace(Telemetry.service_name || "karibu client", nil)
               else
                 span = Telemetry::Span.attach_span(trace_id, span_id)
                 args[4] << {:kaributelemetrytraceid => trace_id.to_s, :kaributelemetryspanid => span_id.to_s}
@@ -51,10 +51,11 @@ module Telemetry
                 span_id = request.params.last[:kaributelemetryspanid]
                 request.params.pop
               end
+              p "#{klass}.#{meth}(#{request.params})"
               if trace_id.nil? || span_id.nil?
-                span = Telemetry::Span.start_trace(Telemetry.service_name || "Karibu server")
+                span = Telemetry::Span.start_trace(Telemetry.service_name || "Karibu server", "#{klass}.#{meth}(#{request.params})")
               else
-                span = Telemetry::Span.attach_span(trace_id, span_id)
+                span =  Telemetry::Span.start(Telemetry.service_name || "Karibu server", trace_id, nil, span_id, true, "#{klass}.#{meth}(#{request.params})")
               end
               span.add_annotation('ServerReceived', "#{klass}.#{meth}")
               result = self.send("exec_request_without_telemetry", *args)
