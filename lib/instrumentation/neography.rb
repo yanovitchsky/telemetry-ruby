@@ -3,9 +3,11 @@ module Telemetry
     module Neography
       def self.included(base)
         base.class_eval do
-          methods = ["get", "post", "put", "delete"]
+          methods = ["post", "get", "put", "delete"]
           methods.each do |m|
-            define_method("#{m}_with_telemetry") do |path, options = {}|
+            define_method("#{m}_with_telemetry") do |*args|
+              path = args[0]
+              options = args[1]
               trace_id = Telemetry::SpanContext.new.current_trace_id
               span_id = Telemetry::SpanContext.new.current_span_id
               if trace_id.nil? || span_id.nil?
@@ -15,7 +17,7 @@ module Telemetry
                 # args[1] = {'X-Telemetry-TraceId' => trace_id.to_s, 'X-Telemetry-SpanId' => span_id.to_s}
               end
               span.add_annotation('NeographySend', "#{m}: #{path}-#{options}")
-              result = self.send("#{m}_without_telemetry", path, options = {})
+              result = self.send("#{m}_without_telemetry", *args)
               span.add_annotation('NeographyReceived', "#{m}: #{path}-#{options}")
               span.end
               result
@@ -31,7 +33,6 @@ module Telemetry
 end
 
 if defined?(::Neography)
-  p "hey Neography is defined"
   ::Neography::Connection.class_eval do
     include Telemetry::Instrumentation::Neography
   end

@@ -5,7 +5,9 @@ module Telemetry
         base.class_eval do
           def call_with_telemetry(*args, &block)
             method_name = args[0].is_a?(Array) ? args[0][0] : args[0]
-            metrics = "Redis/#{method_name.to_s.upcase}"
+            myargs = args[0].is_a?(Array) ? args[0] : args
+            #metrics = "Redis/#{method_name.to_s.upcase}"
+            metrics = myargs[0...-1]
             trace_id = Telemetry::SpanContext.new.current_trace_id
             span_id = Telemetry::SpanContext.new.current_span_id
             if trace_id.nil? || span_id.nil?

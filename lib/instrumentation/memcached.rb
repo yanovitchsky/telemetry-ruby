@@ -8,7 +8,8 @@ module Telemetry
           the_class.class_eval <<-EOD
             #{visibility}
             def #{method_name}_with_telemetry(*args, &block)
-              metrics = "Memcached/#{method_name}"
+              key = args.first
+              metrics = "Memcached/#{method_name} => " + key.to_s
               trace_id = Telemetry::SpanContext.new.current_trace_id
               span_id = Telemetry::SpanContext.new.current_span_id
               if trace_id.nil? || span_id.nil?

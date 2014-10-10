@@ -2,6 +2,7 @@ module Telemetry
   module Instrumentation
     module Moped
       def logging_with_telemetry(operations, &block)
+        p operations
         operation_name, collection = determine_operation_and_collection(operations.first)
         log_statement = operations.first.log_inspect.encode("UTF-8")
         operation = case operation_name
@@ -26,11 +27,11 @@ module Telemetry
             span = Telemetry::Span.attach_span(trace_id, span_id)
           end
 
-          span.add_annotation('Moped query sent', metric)
+          span.add_annotation('Moped query sent', operations)
           begin
             res = command.call
           ensure
-            span.add_annotation('Moped query received', metric)
+            span.add_annotation('Moped query received', operations)
             span.end
           end
         else

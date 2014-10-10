@@ -145,6 +145,7 @@ module Telemetry
     # Adds an annotation to the current span.
     def add_annotation(name, message = nil)
       @annotations.push(AnnotationData.new(name, message))
+      # p "in add annotations #{@annotations}"
     end
 
     # Ends a span.
@@ -161,10 +162,16 @@ module Telemetry
           sink.record(self)
         end
 
+        # p "in sink annotations #{@annotations}"
         @annotations.each { |annotation|
+          # p annotation
           sink.record_annotation(@trace_id, @id, annotation)
         }
       }
+    end
+
+    def get_annotations
+      @annotations
     end
 
     # Add custom infos to span
