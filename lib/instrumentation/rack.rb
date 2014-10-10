@@ -5,14 +5,14 @@ module Rack
     end
 
     def call(env)
-      puts "telemetry is loaded"
+      puts env
       trace_id = env[header_hash_name('X-Telemetry-TraceId')]
       span_id = env[header_hash_name('X-Telemetry-SpanId')]
 
       if trace_id.nil? || span_id.nil?
-        span = Telemetry::Span.start_trace(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], env['REQUEST_PATH'])
+        span = Telemetry::Span.start_trace(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], env['REQUEST_URI'])
       else
-        span = Telemetry::Span.start(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], trace_id, nil, span_id, true, env['REQUEST_PATH'])
+        span = Telemetry::Span.start(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], trace_id, nil, span_id, true, env['REQUEST_URI'])
       end
 
       span.add_annotation('ServerReceived')
