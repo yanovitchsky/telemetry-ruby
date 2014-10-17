@@ -16,9 +16,10 @@ module Telemetry
                 span = Telemetry::Span.attach_span(trace_id, span_id)
                 args[1] = {'X-Telemetry-TraceId' => trace_id.to_s, 'X-Telemetry-SpanId' => span_id.to_s}
               end
-              span.add_annotation('ClientSend', "#{m}: #{path}")
+              f_ann = span.add_annotation('ClientSend', "#{m}: #{path}")
               result = self.send("#{m}_without_telemetry", *args)
-              span.add_annotation('ClientReceived', "#{m}: #{path}")
+              s_ann = span.add_annotation('ClientReceived', "#{m}: #{path}")
+              s_ann.link_to_annotation(f_ann)
               span.end
               result
             end

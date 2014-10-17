@@ -16,13 +16,14 @@ if defined?(::Goliath)
           else
             span = Telemetry::Span.start(Telemetry.service_name || "#{@name}#{env['PATH_INFO']}", trace_id, nil, span_id, true, env['REQUEST_URI'])
           end
-          span.add_annotation('ServerReceived')
-          super(env, span)
+          ann = span.add_annotation('ServerReceived')
+          super(env, span, ann)
         end
 
-        def post_process(env, status, headers, body, span)
+        def post_process(env, status, headers, body, span, ann)
           p "post process ---------------"
-          span.add_annotation('ServerSent')
+          s_ann = span.add_annotation('ServerSent')
+          s_ann.link_to_annotation(ann)
           span.end
           [status, headers, body]
         end

@@ -27,11 +27,12 @@ module Telemetry
             span = Telemetry::Span.attach_span(trace_id, span_id)
           end
 
-          span.add_annotation('Moped query sent', operations)
+          f_ann = span.add_annotation('Moped query sent', operations)
           begin
             res = command.call
           ensure
-            span.add_annotation('Moped query received', operations)
+            s_ann = span.add_annotation('Moped query received', operations)
+            s_ann.link_to_annotation(f_ann)
             span.end
           end
         else

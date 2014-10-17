@@ -15,11 +15,10 @@ module Rack
         span = Telemetry::Span.start(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], trace_id, nil, span_id, true, env['REQUEST_URI'])
       end
 
-      span.add_annotation('ServerReceived')
-      span.add_annotation('ServiceName', 'unknown rails - update telemetry-ruby to include')
+      f_ann = span.add_annotation('ServerReceived')
       status, headers, response = @app.call(env)
-      span.add_annotation('ServerSent')
-
+      s_ann = span.add_annotation('ServerSent')
+      s_ann.link_to_annotation(f_ann)
       span.end
 
       [status, headers, response]

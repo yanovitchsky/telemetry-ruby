@@ -144,7 +144,9 @@ module Telemetry
 
     # Adds an annotation to the current span.
     def add_annotation(name, message = nil)
-      @annotations.push(AnnotationData.new(name, message))
+      ann = AnnotationData.new(name, message)
+      @annotations.push(ann)
+      ann
       # p "in add annotations #{@annotations}"
     end
 
@@ -202,6 +204,7 @@ module Telemetry
     attr_reader :start_time_nanos
     attr_reader :name
     attr_reader :message
+    attr_accessor :luid
 
     def initialize(name, message = nil)
       @start_time_nanos = Telemetry.now_in_nanos
@@ -213,8 +216,16 @@ module Telemetry
       {
         name: @name,
         message: @message,
-        start_time_nanos: @start_time_nanos
+        start_time_nanos: @start_time_nanos,
+        luid: @luid
       }
+    end
+
+    def link_to_annotation(annotation)
+      if annotation.luid.nil?
+        luid = SecureRandom.hex
+        @luid = annotation.luid = luid
+      end
     end
 
     def inspect
