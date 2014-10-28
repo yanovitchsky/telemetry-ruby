@@ -5,7 +5,6 @@ module Rack
     end
 
     def call(env)
-      puts env
       trace_id = env[header_hash_name('X-Telemetry-TraceId')]
       span_id = env[header_hash_name('X-Telemetry-SpanId')]
 

@@ -21,7 +21,6 @@ if defined?(::Goliath)
         end
 
         def post_process(env, status, headers, body, span, ann)
-          p "post process ---------------"
           s_ann = span.add_annotation('ServerSent')
           s_ann.link_to_annotation(ann)
           span.end

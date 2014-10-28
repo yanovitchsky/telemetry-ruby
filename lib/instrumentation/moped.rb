@@ -2,7 +2,6 @@ module Telemetry
   module Instrumentation
     module Moped
       def logging_with_telemetry(operations, &block)
-        p operations
         operation_name, collection = determine_operation_and_collection(operations.first)
         log_statement = operations.first.log_inspect.encode("UTF-8")
         operation = case operation_name
