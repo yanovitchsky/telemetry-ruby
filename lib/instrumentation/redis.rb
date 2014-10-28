@@ -16,10 +16,13 @@ module Telemetry
               span = Telemetry::Span.attach_span(trace_id, span_id)
             end
             f_ann = span.add_annotation('Redis send', metrics)
-            result = self.send(:call_without_telemetry, *args)
-            s_ann = span.add_annotation('Redis received', metrics)
-            s_ann.link_to_annotation(f_ann)
-            span.end
+            begin
+              result = self.send(:call_without_telemetry, *args)
+            ensure
+              s_ann = span.add_annotation('Redis received', metrics)
+              s_ann.link_to_annotation(f_ann)
+              span.end
+            end
             result
           end
         end

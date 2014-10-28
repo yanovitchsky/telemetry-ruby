@@ -17,10 +17,13 @@ module Telemetry
                 args[1] = {'X-Telemetry-TraceId' => trace_id.to_s, 'X-Telemetry-SpanId' => span_id.to_s}
               end
               f_ann = span.add_annotation('ClientSend', "#{m}: #{path}")
-              result = self.send("#{m}_without_telemetry", *args)
-              s_ann = span.add_annotation('ClientReceived', "#{m}: #{path}")
-              s_ann.link_to_annotation(f_ann)
-              span.end
+              begin
+                result = self.send("#{m}_without_telemetry", *args)
+              ensure
+                s_ann = span.add_annotation('ClientReceived', "#{m}: #{path}")
+                s_ann.link_to_annotation(f_ann)
+                span.end
+              end
               result
             end
 

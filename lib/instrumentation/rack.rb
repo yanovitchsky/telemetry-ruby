@@ -14,12 +14,11 @@ module Rack
         span = Telemetry::Span.start(Telemetry.service_name || env['SCRIPT_NAME'] + env['PATH_INFO'], trace_id, nil, span_id, true, env['REQUEST_URI'])
       end
 
-      f_ann = span.add_annotation('ServerReceived')
+      f_ann = span.add_annotation('ServerReceived', env['REQUEST_URI'])
       status, headers, response = @app.call(env)
-      s_ann = span.add_annotation('ServerSent')
+      s_ann = span.add_annotation('ServerSent', env['REQUEST_URI'])
       s_ann.link_to_annotation(f_ann)
       span.end
-
       [status, headers, response]
     end
 
