@@ -14,7 +14,7 @@ module Telemetry
                 span = Telemetry::Span.start_trace(Telemetry.service_name || path, nil)
               else
                 span = Telemetry::Span.attach_span(trace_id, span_id)
-                args[1] = {'X-Telemetry-TraceId' => trace_id.to_s, 'X-Telemetry-SpanId' => span_id.to_s}
+                args[1].merge!{'X-Telemetry-TraceId' => trace_id.to_s, 'X-Telemetry-SpanId' => span_id.to_s} if args[1]
               end
               f_ann = span.add_annotation('ClientSend', "#{m}: #{path}")
               begin
