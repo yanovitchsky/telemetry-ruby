@@ -40,4 +40,33 @@ if defined?(::Visibleo) and defined?(::Visibleo::HttpRequest)
   ::Visibleo::HttpRequest.class_eval do
     include Telemetry::Instrumentation::VisibleoApi
   end
+  version = VisibleoApi::VERSION.split('.')
+  major = version[0]
+  minor = version[1]
+  if major == 0 && minor == 2
+    class ::Visibleo::SyncHttp
+      def get(query={}, headers={})
+        # raise [query, headers].inspect
+        query = {headers: headers} if query.nil?
+        query.merge!(headers: headers)
+        # raise query.inspect
+        response_wrapper HTTParty.get path, query
+      end
+
+      def post(query={}, headers={})
+        query = {} if query.nil?
+        response_wrapper HTTParty.post path, body: query[:query], headers: headers[:headers]
+      end
+
+      def put(query={}, headers={})
+        query = {} if query.nil?
+        response_wrapper HTTParty.put path, body: query[:query], headers: headers[:headers]
+      end
+
+      def delete(query={}, headers={})
+        query.merge!(headers: headers[:headers])
+        response_wrapper HTTParty.delete path, query
+      end
+    end
+  end
 end
