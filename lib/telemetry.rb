@@ -49,7 +49,7 @@ module Telemetry
       if @@spans.empty?
         nil
       else
-        @@spans.slice(-1).trace_id
+        @@spans.slice(-1)
       end
     end
 
