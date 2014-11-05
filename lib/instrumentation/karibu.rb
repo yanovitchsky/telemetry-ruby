@@ -22,7 +22,9 @@ module Telemetry
               # payload later
               f_ann = span.add_annotation('ClientSend', "#{klass}.#{meth}")
               begin
-                result = self.send("execute_without_telemetry", *args)  
+                result = self.send("execute_without_telemetry", *args)
+                p result
+                result
               ensure
                 s_ann = span.add_annotation('ClientReceived', "#{klass}.#{meth}")
                 s_ann.link_to_annotation(f_ann)

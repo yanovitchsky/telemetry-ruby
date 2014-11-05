@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'telemetry'
-  s.version = '0.0.1'
+  s.version = Telemetry::VERSION
   s.date = '2013-08-08'
   s.summary = ""
   s.description = ""
@@ -10,6 +10,8 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/yammer/telemetry'
   s.license = 'Apache 2.0'
   s.add_dependency 'multi_json', '~> 1.0'
+  s.add_dependency 'poseidon'
+  s.add_dependency 'celluloid'
   # s.add_dependency('sinatra')
   # s.add_dependency('mongoid')
   # s.add_dependency('em-mongo')

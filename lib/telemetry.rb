@@ -11,6 +11,7 @@ require 'instrumentation/neography'
 require 'sinks/telemetry_service'
 require "sinks/udp_service"
 require "sinks/redis_service"
+require "sinks/kafka_service"
 
 # The Telemetry module models a dapper(http://research.google.com/pubs/pub36356.html)-like
 # system for distributed execution tracing.

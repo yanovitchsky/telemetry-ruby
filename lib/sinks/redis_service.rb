@@ -1,4 +1,4 @@
-require 'redis'
+require 'redis' if defined?(::Redis)
 require 'multi_json'
 
 module Telemetry

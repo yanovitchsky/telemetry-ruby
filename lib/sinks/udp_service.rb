@@ -3,6 +3,8 @@ require 'multi_json'
 
 module Telemetry
   class UdpServiceSink
+
+    EOF = "__EOF__\r\n"
     
     def initialize(host, port, logger)
       @socket = UDPSocket.new
@@ -29,7 +31,7 @@ module Telemetry
           data: annotation_data.to_hash
         }
       }
-      encoded_data = MultiJson.dump(data)
+      encoded_data = MultiJson.dump(data) + EOF
       begin
         @socket.send(encoded_data, 0)
       rescue Exception => e
