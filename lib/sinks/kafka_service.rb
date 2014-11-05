@@ -7,7 +7,7 @@ module Telemetry
     include Celluloid
 
     KAFKA_HOST = {
-      'development' => "192.168.59.103:9092",
+      'development' => "10.10.42.8:9092",
       'production'  => "192.168.100.1:9092"
     }
 
