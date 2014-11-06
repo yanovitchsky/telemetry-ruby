@@ -104,9 +104,9 @@ module Telemetry
     @@context = SpanContext.new
 
 
-    _START = 1  # a annotation beginning
-    _END   = 2  # a annotation end
-    _ERROR = 3  # a annotation error 
+    ANNOTATION_START = 1  # a annotation beginning
+    ANNOTATION_END   = 2  # a annotation end
+    ANNOTATION_ERROR = 3  # a annotation error 
 
     # Start a brand new trace.
     def self.start_trace(name, endpoint)
@@ -158,17 +158,20 @@ module Telemetry
 
     def add_start_annotation(name, message=nil)
       annotation = add_annotation(name, message)
-      annotation.type = _START
+      annotation.type = ANNOTATION_START
+      annotation
     end
 
     def add_end_annotation(name, message=nil)
       annotation = add_annotation(name, message)
-      annotation.type = _END
+      annotation.type = ANNOTATION_END
+      annotation
     end
 
     def add_error_annotation(name, message=nil)
       annotation = add_annotation(name, message)
-      annotation.type = _ERROR
+      annotation.type = ANNOTATION_ERROR
+      annotation
     end
 
     # Ends a span.
