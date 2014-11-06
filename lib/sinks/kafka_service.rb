@@ -45,11 +45,9 @@ module Telemetry
       begin
         messages = []
         messages << Poseidon::MessageToSend.new(@telemetry_topic, MultiJson.dump(data))
-        p messages
         @producer.send_messages(messages)
-        @logger.info  "publishing #{messages} to kafka on #{@telemetry_topic}"
       rescue Exception => e
-        @logger.info("Error logging #{type.to_s}: #{e}")
+        @logger.error("Error logging #{type.to_s}: #{e}")
       end
     end
   end
