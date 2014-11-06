@@ -11,11 +11,10 @@ module Telemetry
       'production'  => "192.168.60.11:9092"
     }
 
-    TELEMETRY_TOPIC = TELEMETRY_TOPIC = $env == "production" ? "telemetry" : "telemetry-test"
-
     def initialize(logger)
       env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || ENV['KARIBU_ENV'] || 'development'
       @logger = logger
+      @telemetry_topic = (env == "production") ? "telemetry" : "telemetry-test"
       @producer = Poseidon::Producer.new([KAFKA_HOST[env]], "telemetry_producer")
     end
 
@@ -40,9 +39,10 @@ module Telemetry
     def send_message(type, data)
       begin
         messages = []
-        messages << Poseidon::MessageToSend.new(TELEMETRY_TOPIC, MultiJson.dump(data))
+        messages << Poseidon::MessageToSend.new(@telemetry_topic, MultiJson.dump(data))
+        p messages
         @producer.send_messages(messages)
-        @logger.info  "publishing #{messages} to kafka on #{TELEMETRY_TOPIC}"
+        @logger.info  "publishing #{messages} to kafka on #{@telemetry_topic}"
       rescue Exception => e
         @logger.info("Error logging #{type.to_s}: #{e}")
       end
