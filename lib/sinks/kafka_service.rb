@@ -7,16 +7,15 @@ module Telemetry
     include Celluloid
 
     KAFKA_HOST = {
-      'development' => "10.10.42.8:9092",
-      'production'  => "192.168.100.1:9092"
+      'development' => "192.168.60.11:9092",
+      'production'  => "192.168.60.11:9092"
     }
 
-    TELEMETRY_TOPIC = "telemetry"
+    TELEMETRY_TOPIC = TELEMETRY_TOPIC = $env == "production" ? "telemetry" : "telemetry-test"
 
     def initialize(logger)
       env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || ENV['KARIBU_ENV'] || 'development'
       @logger = logger
-      partitionner = Proc.new{|key, partition_count| p "key: #{key} === partition_count: #{partition_count}"; 0}
       @producer = Poseidon::Producer.new([KAFKA_HOST[env]], "telemetry_producer")
     end
 
