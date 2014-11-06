@@ -162,6 +162,7 @@ module Telemetry
       # Log the span (if enabled) and any annotations to any configured span sink(s).
       Telemetry.span_sinks.each { |sink|
         if (@log_span)
+          p sink
           sink.record(self)
         end
 

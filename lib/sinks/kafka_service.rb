@@ -1,27 +1,32 @@
 require 'multi_json'
 require 'poseidon'
-require 'celluloid'
+require 'celluloid' unless defined?(::Goliath)
 
 module Telemetry
+
   class KafkaServiceSink
-    include Celluloid
+    include Celluloid unless defined?(::Goliath)
 
     KAFKA_HOST = {
       'development' => "192.168.60.11:9092",
       'production'  => "192.168.60.11:9092"
     }
 
-    def initialize(logger)
+    def initialize(logger) 
       env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || ENV['KARIBU_ENV'] || 'development'
       @logger = logger
       @telemetry_topic = (env == "production") ? "telemetry" : "telemetry-test"
       @producer = Poseidon::Producer.new([KAFKA_HOST[env]], "telemetry_producer")
     end
 
+    def is_evented?
+      !defined?(::Goliath).nil? 
+    end
+
     # Record the span.
     def record(span)
       data = {span: span.to_hash}
-      async.send_message(:span, data)
+      is_evented? ? EM.defer{send_message(:span, data)} : async.send_message(:span, data)
     end
 
     # Record the annotation.
@@ -33,7 +38,7 @@ module Telemetry
           data: annotation_data.to_hash
         }
       }
-      async.send_message(:annotation, data)
+      is_evented? ? EM.defer{send_message(:annotation, data)} : async.send_message(:annotation, data)
     end
 
     def send_message(type, data)
