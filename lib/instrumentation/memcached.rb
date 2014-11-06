@@ -17,11 +17,11 @@ module Telemetry
               else
                 span = Telemetry::Span.attach_span(trace_id, span_id)
               end
-              f_ann = span.add_annotation('Memcached send', metrics)
+              f_ann = span.add_start_annotation('Memcached send', metrics)
               begin
                 result = self.send("#{method_name}_without_telemetry", *args)
               ensure
-                s_ann = span.add_annotation('Memcached received', metrics)
+                s_ann = span.add_end_annotation('Memcached received', metrics)
                 s_ann.link_to_annotation(f_ann)
                 span.end
               end

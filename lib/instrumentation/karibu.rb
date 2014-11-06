@@ -20,13 +20,13 @@ module Telemetry
                 args[4] << {:kaributelemetrytraceid => trace_id.to_s, :kaributelemetryspanid => span_id.to_s}
               end
               # payload later
-              f_ann = span.add_annotation('ClientSend', "#{klass}.#{meth}")
+              f_ann = span.add_start_annotation('ClientSend', "#{klass}.#{meth}")
               begin
                 result = self.send("execute_without_telemetry", *args)
                 p result
                 result
               ensure
-                s_ann = span.add_annotation('ClientReceived', "#{klass}.#{meth}")
+                s_ann = span.add_end_annotation('ClientReceived', "#{klass}.#{meth}")
                 s_ann.link_to_annotation(f_ann)
                 span.end
               end
@@ -63,11 +63,11 @@ module Telemetry
               else
                 span =  Telemetry::Span.start(Telemetry.service_name || "Karibu server", trace_id, nil, span_id, true, "#{klass}.#{meth}(#{request.params})")
               end
-              f_ann = span.add_annotation('ServerReceived', "#{klass}.#{meth}")
+              f_ann = span.add_start_annotation('ServerReceived', "#{klass}.#{meth}")
               begin
                 result = self.send("exec_request_without_telemetry", *args)
               ensure
-                s_ann = span.add_annotation('ServerSent', "#{klass}.#{meth}")
+                s_ann = span.add_end_annotation('ServerSent', "#{klass}.#{meth}")
                 s_ann.link_to_annotation(f_ann)
                 span.end
               end

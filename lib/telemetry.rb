@@ -103,6 +103,11 @@ module Telemetry
     attr_reader :endpoint
     @@context = SpanContext.new
 
+
+    _START = 1  # a annotation beginning
+    _END   = 2  # a annotation end
+    _ERROR = 3  # a annotation error 
+
     # Start a brand new trace.
     def self.start_trace(name, endpoint)
       start(name, nil, nil, nil, true, endpoint)
@@ -149,6 +154,21 @@ module Telemetry
       @annotations.push(ann)
       ann
       # p "in add annotations #{@annotations}"
+    end
+
+    def add_start_annotation(name, message=nil)
+      annotation = add_annotation(name, message)
+      annotation.type = _START
+    end
+
+    def add_end_annotation(name, message=nil)
+      annotation = add_annotation(name, message)
+      annotation.type = _END
+    end
+
+    def add_error_annotation(name, message=nil)
+      annotation = add_annotation(name, message)
+      annotation.type = _ERROR
     end
 
     # Ends a span.
@@ -207,6 +227,7 @@ module Telemetry
     attr_reader :name
     attr_reader :message
     attr_accessor :luid
+    attr_accessor :type
 
     def initialize(name, message = nil)
       @start_time_nanos = Telemetry.now_in_nanos
