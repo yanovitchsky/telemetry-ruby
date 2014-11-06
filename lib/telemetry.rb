@@ -240,7 +240,8 @@ module Telemetry
         name: @name,
         message: @message,
         start_time_nanos: @start_time_nanos,
-        luid: @luid
+        luid: @luid,
+        type: @type
       }
     end
 
