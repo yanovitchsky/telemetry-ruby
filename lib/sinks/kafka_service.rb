@@ -5,50 +5,93 @@ require 'celluloid' unless defined?(::Goliath)
 module Telemetry
 
   class KafkaServiceSink
-    include Celluloid unless defined?(::Goliath)
+    extend Forwardable
 
-    KAFKA_HOST = {
-      'development' => "192.168.60.11:9092",
-      'production'  => "192.168.60.11:9092"
-    }
+    attr_accessor :proxy
 
-    def initialize(logger) 
-      env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || ENV['KARIBU_ENV'] || 'development'
-      @logger = logger
-      @telemetry_topic = (env == "production") ? "telemetry" : "telemetry-test"
-      @producer = Poseidon::Producer.new([KAFKA_HOST[env]], "telemetry_producer")
+    def_delegators :proxy, :record, :record_annotation
+    
+    def initialize(logger)
+      @proxy = defined?(::Goliath).nil? ? EventedKafkaSink.new(logger) : AsyncKafkaSink.new(logger)
+    end
+  end
+
+  class KafkaSinker
+
+      KAFKA_HOST = {
+        'development' => "192.168.60.11:9092",
+        'production'  => "192.168.60.11:9092"
+      }
+      def initialize(logger) 
+        env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || ENV['KARIBU_ENV'] || 'development'
+        @logger = logger
+        @telemetry_topic = (env == "production") ? "telemetry" : "telemetry-test"
+        @producer = Poseidon::Producer.new([KAFKA_HOST[env]], "telemetry_producer")
+      end
+
+      # Record the span.
+      def record(span)
+        data = {span: span.to_hash}
+        send_message(:span, data)
+      end
+
+      # Record the annotation.
+      def record_annotation(trace_id, id, annotation_data)
+        data ={
+          annotation: {
+            trace_id: trace_id,
+            span_id: id,
+            data: annotation_data.to_hash
+          }
+        }
+        send_message(:annotation, data)
+      end
+
+      def send_message(type, data)
+        begin
+          messages = []
+          messages << Poseidon::MessageToSend.new(@telemetry_topic, MultiJson.dump(data))
+          @producer.send_messages(messages)
+        rescue Exception => e
+          @logger.error("Error logging #{type.to_s}: #{e}")
+        end
+      end
     end
 
-    def is_evented?
-      !defined?(::Goliath).nil? 
+  class AsyncKafkaSink
+    
+    def initialize(logger)
+      KafkaSinker.class_eval do
+        include Celluloid
+      end
+
+      @pool =  KafkaSinker.pool(size: 100, args: [logger])
     end
 
-    # Record the span.
+    # record span
     def record(span)
-      data = {span: span.to_hash}
-      is_evented? ? EM.defer{send_message(:span, data)} : async.send_message(:span, data)
+      @pool.async.record(span)
     end
 
     # Record the annotation.
     def record_annotation(trace_id, id, annotation_data)
-      data ={
-        annotation: {
-          trace_id: trace_id,
-          span_id: id,
-          data: annotation_data.to_hash
-        }
-      }
-      is_evented? ? EM.defer{send_message(:annotation, data)} : async.send_message(:annotation, data)
+      @pool.async.record_annotation(trace_id, id, annotation_data)
+    end
+  end
+
+  class EventedKafkaSink
+    def intialize(logger)
+      @sinker = KafkaSinker.new(logger)
     end
 
-    def send_message(type, data)
-      begin
-        messages = []
-        messages << Poseidon::MessageToSend.new(@telemetry_topic, MultiJson.dump(data))
-        @producer.send_messages(messages)
-      rescue Exception => e
-        @logger.error("Error logging #{type.to_s}: #{e}")
-      end
+    # record span
+    def record(span)
+     EM.defer{@sinker.record(span)}
+    end
+
+    # Record the annotation.
+    def record_annotation(trace_id, id, annotation_data)
+      EM.defer{@sinker.record_annotation(trace_id, id, annotation_data)}
     end
   end
 end
