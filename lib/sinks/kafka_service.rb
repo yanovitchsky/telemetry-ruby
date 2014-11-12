@@ -12,7 +12,7 @@ module Telemetry
     def_delegators :proxy, :record, :record_annotation
     
     def initialize(logger)
-      @proxy = defined?(::Goliath).nil? ? EventedKafkaSink.new(logger) : AsyncKafkaSink.new(logger)
+      @proxy = defined?(::Goliath).nil? ? AsyncKafkaSink.new(logger) : EventedKafkaSink.new(logger)
     end
   end
 
@@ -80,7 +80,7 @@ module Telemetry
   end
 
   class EventedKafkaSink
-    def intialize(logger)
+    def initialize(logger)
       @sinker = KafkaSinker.new(logger)
     end
 
