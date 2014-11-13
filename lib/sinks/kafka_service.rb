@@ -86,12 +86,16 @@ module Telemetry
 
     # record span
     def record(span)
-     EM.defer{@sinker.record(span)}
+      if EM.reactor_running?
+        EM.defer{@sinker.record(span)}
+      end
     end
 
     # Record the annotation.
     def record_annotation(trace_id, id, annotation_data)
-      EM.defer{@sinker.record_annotation(trace_id, id, annotation_data)}
+      if EM.reactor_running?
+        EM.defer{@sinker.record_annotation(trace_id, id, annotation_data)}
+      end
     end
   end
 end
