@@ -16,6 +16,23 @@ module Telemetry
     end
   end
 
+  class SinkProxy
+    include Celluloid
+
+    def initialize(logger)
+      @sink = KafkaSinker.new(logger)
+    end
+
+    def record(span)
+      @sink.record(span)
+    end
+
+    # Record the annotation.
+    def record_annotation(trace_id, id, annotation_data)
+      @sink.record_annotation(trace_id, id, annotation_data)
+    end
+  end
+
   class KafkaSinker
 
       KAFKA_HOST = {
@@ -61,11 +78,7 @@ module Telemetry
   class AsyncKafkaSink
     
     def initialize(logger)
-      KafkaSinker.class_eval do
-        include Celluloid
-      end
-
-      @pool =  KafkaSinker.pool(size: 100, args: [logger])
+      @pool =  SinkProxy.pool(size: 100, args: [logger])
     end
 
     # record span
