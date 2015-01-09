@@ -11,6 +11,7 @@ require 'instrumentation/neography'
 require 'sinks/telemetry_service'
 require "sinks/udp_service"
 require "sinks/redis_service"
+require "sinks/kafka_service"
 
 # The Telemetry module models a dapper(http://research.google.com/pubs/pub36356.html)-like
 # system for distributed execution tracing.
@@ -49,7 +50,7 @@ module Telemetry
       if @@spans.empty?
         nil
       else
-        @@spans.slice(-1).trace_id
+        @@spans.slice(-1)
       end
     end
 
@@ -102,6 +103,11 @@ module Telemetry
     attr_reader :endpoint
     @@context = SpanContext.new
 
+
+    ANNOTATION_START = 1  # a annotation beginning
+    ANNOTATION_END   = 2  # a annotation end
+    ANNOTATION_ERROR = 3  # a annotation error 
+
     # Start a brand new trace.
     def self.start_trace(name, endpoint)
       start(name, nil, nil, nil, true, endpoint)
@@ -150,6 +156,24 @@ module Telemetry
       # p "in add annotations #{@annotations}"
     end
 
+    def add_start_annotation(name, message=nil)
+      annotation = add_annotation(name, message)
+      annotation.type = ANNOTATION_START
+      annotation
+    end
+
+    def add_end_annotation(name, message=nil)
+      annotation = add_annotation(name, message)
+      annotation.type = ANNOTATION_END
+      annotation
+    end
+
+    def add_error_annotation(name, message=nil)
+      annotation = add_annotation(name, message)
+      annotation.type = ANNOTATION_ERROR
+      annotation
+    end
+
     # Ends a span.
     def end
       # Stop the span timer.
@@ -161,6 +185,7 @@ module Telemetry
       # Log the span (if enabled) and any annotations to any configured span sink(s).
       Telemetry.span_sinks.each { |sink|
         if (@log_span)
+          p sink
           sink.record(self)
         end
 
@@ -205,6 +230,7 @@ module Telemetry
     attr_reader :name
     attr_reader :message
     attr_accessor :luid
+    attr_accessor :type
 
     def initialize(name, message = nil)
       @start_time_nanos = Telemetry.now_in_nanos
@@ -217,7 +243,8 @@ module Telemetry
         name: @name,
         message: @message,
         start_time_nanos: @start_time_nanos,
-        luid: @luid
+        luid: @luid,
+        type: @type
       }
     end
 
