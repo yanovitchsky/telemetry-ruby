@@ -42,7 +42,7 @@ module Telemetry
       def initialize(logger) 
         env = ENV['RAILS_ENV'] || ENV['RACK_ENV'] || ENV['KARIBU_ENV'] || 'development'
         @logger = logger
-        @telemetry_topic = (env == "production") ? "telemetry" : "telemetry-test"
+        @telemetry_topic = (env == "production") ? "telemetry-production" : "telemetry-test"
         @producer = Poseidon::Producer.new([KAFKA_HOST[env]], "telemetry_producer")
       end
 
@@ -78,16 +78,19 @@ module Telemetry
   class AsyncKafkaSink
     
     def initialize(logger)
+      # @logger = logger
       @pool =  SinkProxy.pool(size: 100, args: [logger])
     end
 
     # record span
     def record(span)
+      # @logger.info span.inspect
       @pool.async.record(span)
     end
 
     # Record the annotation.
     def record_annotation(trace_id, id, annotation_data)
+      # @logger.info "#{trace_id}, #{id}, #{annotation_data.inspect}"
       @pool.async.record_annotation(trace_id, id, annotation_data)
     end
   end

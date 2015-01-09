@@ -255,7 +255,7 @@ module Telemetry
     end
 
     def inspect
-      "AnnotationData(name = #{name}, message = #{message}"
+      "AnnotationData(name = #{name}, message = #{message}, luid = #{luid}, type = #{type}, start_time_nanos = #{start_time_nanos}"
     end
   end
 end
