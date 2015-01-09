@@ -222,10 +222,9 @@ module Telemetry
     end
 
     def link_to_annotation(annotation)
-      if annotation.luid.nil?
-        luid = SecureRandom.hex
-        @luid = annotation.luid = luid
-      end
+      luid = SecureRandom.hex
+      @luid = luid
+      annotation.luid = luid
     end
 
     def inspect
